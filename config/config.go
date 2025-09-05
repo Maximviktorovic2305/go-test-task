@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-// Config содержит конфигурацию приложения
+// Структура конфигурации
 type Config struct {
 	DBHost     string
 	DBUser     string
