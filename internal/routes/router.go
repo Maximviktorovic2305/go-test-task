@@ -24,7 +24,23 @@ func SetupRoutes(db *gorm.DB) *mux.Router {
 	// Настроить маршруты
 	setupSubscriptionRoutes(router, subscriptionHandler)
 
-	// Конечная точка проверки состояния
+	// Проверка состояния
+	// swagger:operation GET /health health healthCheck
+	//
+	// Check the health of the service
+	//
+	// Returns a simple status message to indicate the service is running
+	//
+	// ---
+	// responses:
+	//   '200':
+	//     description: Service is healthy
+	//     schema:
+	//       type: object
+	//       properties:
+	//         status:
+	//           type: string
+	//           example: ok
 	router.HandleFunc("/health", healthCheck).Methods("GET")
 
 	return router
@@ -43,7 +59,15 @@ func setupSubscriptionRoutes(router *mux.Router, handler *handlers.SubscriptionH
 	router.HandleFunc("/subscriptions/cost", handler.CalculateTotalCost).Methods("GET")
 }
 
-// healthCheck это простая конечная точка проверки состояния
+// healthCheck - проверка состояния
+//
+//	@Summary		Health check
+//	@Description	Returns a simple status message to indicate the service is running
+//	@Tags			Health
+//	@Accept			json
+//	@Produce		json
+//	@Success		200	{object}	object{status=string}
+//	@Router			/health [get]
 func healthCheck(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

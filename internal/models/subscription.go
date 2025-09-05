@@ -6,15 +6,41 @@ import (
 	"gorm.io/gorm"
 )
 
+// Subscription represents a user subscription to a service
+//
+// swagger:model
 type Subscription struct {
-	ID          uint       `gorm:"primaryKey" json:"id"`
-	ServiceName string     `gorm:"not null" json:"service_name"`
-	Price       int        `gorm:"not null" json:"price"`
-	UserID      string     `gorm:"type:uuid;not null" json:"user_id"`
-	StartDate   time.Time  `gorm:"not null" json:"start_date"`
-	EndDate     *time.Time `json:"end_date,omitempty"`
-	CreatedAt   time.Time  `json:"created_at"`
-	UpdatedAt   time.Time  `json:"updated_at"`
+	// The unique identifier of the subscription
+	// Read Only: true
+	ID uint `gorm:"primaryKey" json:"id"`
+
+	// The name of the service
+	// Required: true
+	ServiceName string `gorm:"not null" json:"service_name"`
+
+	// The price of the subscription in rubles
+	// Required: true
+	// Minimum: 0
+	Price int `gorm:"not null" json:"price"`
+
+	// The UUID of the user
+	// Required: true
+	UserID string `gorm:"type:uuid;not null" json:"user_id"`
+
+	// The start date of the subscription
+	// Required: true
+	StartDate time.Time `gorm:"not null" json:"start_date"`
+
+	// The end date of the subscription
+	EndDate *time.Time `json:"end_date,omitempty"`
+
+	// The creation timestamp
+	// Read Only: true
+	CreatedAt time.Time `json:"created_at"`
+
+	// The last update timestamp
+	// Read Only: true
+	UpdatedAt time.Time `json:"updated_at"`
 }
 
 // BeforeCreate хук для установки CreatedAt и UpdatedAt

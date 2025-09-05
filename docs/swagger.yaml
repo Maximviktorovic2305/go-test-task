@@ -1,0 +1,305 @@
+basePath: /
+definitions:
+  models.Subscription:
+    properties:
+      created_at:
+        description: |-
+          The creation timestamp
+          Read Only: true
+        type: string
+      end_date:
+        description: The end date of the subscription
+        type: string
+      id:
+        description: |-
+          The unique identifier of the subscription
+          Read Only: true
+        type: integer
+      price:
+        description: |-
+          The price of the subscription in rubles
+          Required: true
+          Minimum: 0
+        type: integer
+      service_name:
+        description: |-
+          The name of the service
+          Required: true
+        type: string
+      start_date:
+        description: |-
+          The start date of the subscription
+          Required: true
+        type: string
+      updated_at:
+        description: |-
+          The last update timestamp
+          Read Only: true
+        type: string
+      user_id:
+        description: |-
+          The UUID of the user
+          Required: true
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a subscription management service API.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Subscription Management API
+  version: "1.0"
+paths:
+  /health:
+    get:
+      consumes:
+      - application/json
+      description: Returns a simple status message to indicate the service is running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              status:
+                type: string
+            type: object
+      summary: Health check
+      tags:
+      - Health
+  /subscriptions:
+    get:
+      consumes:
+      - application/json
+      description: Get a list of subscriptions with optional filters and pagination
+      parameters:
+      - description: 'Page number (default: 1)'
+        in: query
+        name: page
+        type: integer
+      - description: 'Items per page (default: 10)'
+        in: query
+        name: limit
+        type: integer
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by service name
+        in: query
+        name: service_name
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              data:
+                items:
+                  $ref: '#/definitions/models.Subscription'
+                type: array
+              pagination:
+                properties:
+                  limit:
+                    type: integer
+                  page:
+                    type: integer
+                  pages:
+                    type: integer
+                  total:
+                    format: int64
+                    type: integer
+                type: object
+            type: object
+        "500":
+          description: Failed to list subscriptions
+          schema:
+            type: string
+      summary: List subscriptions
+      tags:
+      - Subscriptions
+    post:
+      consumes:
+      - application/json
+      description: Create a new subscription with the provided details
+      parameters:
+      - description: Subscription object
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/models.Subscription'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Subscription'
+        "400":
+          description: Invalid request body
+          schema:
+            type: string
+        "500":
+          description: Failed to create subscription
+          schema:
+            type: string
+      summary: Create a new subscription
+      tags:
+      - Subscriptions
+  /subscriptions/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete a subscription by its ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No content
+          schema:
+            type: string
+        "400":
+          description: Invalid subscription ID
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+        "500":
+          description: Failed to delete subscription
+          schema:
+            type: string
+      summary: Delete subscription
+      tags:
+      - Subscriptions
+    get:
+      consumes:
+      - application/json
+      description: Get a subscription by its ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Subscription'
+        "400":
+          description: Invalid subscription ID
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+        "500":
+          description: Failed to retrieve subscription
+          schema:
+            type: string
+      summary: Get subscription by ID
+      tags:
+      - Subscriptions
+    put:
+      consumes:
+      - application/json
+      description: Update an existing subscription by its ID
+      parameters:
+      - description: Subscription ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Subscription object
+        in: body
+        name: subscription
+        required: true
+        schema:
+          $ref: '#/definitions/models.Subscription'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Subscription'
+        "400":
+          description: Invalid subscription ID or request body
+          schema:
+            type: string
+        "404":
+          description: Subscription not found
+          schema:
+            type: string
+        "500":
+          description: Failed to update subscription
+          schema:
+            type: string
+      summary: Update subscription
+      tags:
+      - Subscriptions
+  /subscriptions/cost:
+    get:
+      consumes:
+      - application/json
+      description: Calculate the total cost of subscriptions with optional filters
+      parameters:
+      - description: Filter by user ID
+        in: query
+        name: user_id
+        type: string
+      - description: Filter by service name
+        in: query
+        name: service_name
+        type: string
+      - description: Start date in MM-YYYY format
+        in: query
+        name: from
+        type: string
+      - description: End date in MM-YYYY format
+        in: query
+        name: to
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            properties:
+              total_cost:
+                type: integer
+            type: object
+        "400":
+          description: Failed to calculate total cost
+          schema:
+            type: string
+        "500":
+          description: Failed to calculate total cost
+          schema:
+            type: string
+      summary: Calculate total cost
+      tags:
+      - Subscriptions
+swagger: "2.0"

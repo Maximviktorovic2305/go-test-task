@@ -25,6 +25,17 @@ func NewSubscriptionHandler(service *services.SubscriptionService) *Subscription
 }
 
 // CreateSubscription создает новую подписку
+//
+//	@Summary		Create a new subscription
+//	@Description	Create a new subscription with the provided details
+//	@Tags			Subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Param			subscription	body		models.Subscription	true	"Subscription object"
+//	@Success		201			{object}	models.Subscription
+//	@Failure		400			{object}	string	"Invalid request body"
+//	@Failure		500			{object}	string	"Failed to create subscription"
+//	@Router			/subscriptions [post]
 func (h *SubscriptionHandler) CreateSubscription(w http.ResponseWriter, r *http.Request) {
 	var req struct {
 		ServiceName string `json:"service_name"`
@@ -80,6 +91,18 @@ func (h *SubscriptionHandler) CreateSubscription(w http.ResponseWriter, r *http.
 }
 
 // GetSubscription получает подписку по ID
+//
+//	@Summary		Get subscription by ID
+//	@Description	Get a subscription by its ID
+//	@Tags			Subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"Subscription ID"
+//	@Success		200	{object}	models.Subscription
+//	@Failure		400	{object}	string	"Invalid subscription ID"
+//	@Failure		404	{object}	string	"Subscription not found"
+//	@Failure		500	{object}	string	"Failed to retrieve subscription"
+//	@Router			/subscriptions/{id} [get]
 func (h *SubscriptionHandler) GetSubscription(w http.ResponseWriter, r *http.Request) {
 	// Получить ID из параметров URL
 	vars := mux.Vars(r)
@@ -106,6 +129,19 @@ func (h *SubscriptionHandler) GetSubscription(w http.ResponseWriter, r *http.Req
 }
 
 // UpdateSubscription обновляет существующую подписку
+//
+//	@Summary		Update subscription
+//	@Description	Update an existing subscription by its ID
+//	@Tags			Subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Param			id				path		int					true	"Subscription ID"
+//	@Param			subscription	body		models.Subscription	true	"Subscription object"
+//	@Success		200				{object}	models.Subscription
+//	@Failure		400				{object}	string	"Invalid subscription ID or request body"
+//	@Failure		404				{object}	string	"Subscription not found"
+//	@Failure		500				{object}	string	"Failed to update subscription"
+//	@Router			/subscriptions/{id} [put]
 func (h *SubscriptionHandler) UpdateSubscription(w http.ResponseWriter, r *http.Request) {
 	// Получить ID из параметров URL
 	vars := mux.Vars(r)
@@ -192,6 +228,18 @@ func (h *SubscriptionHandler) UpdateSubscription(w http.ResponseWriter, r *http.
 }
 
 // DeleteSubscription удаляет подписку по ID
+//
+//	@Summary		Delete subscription
+//	@Description	Delete a subscription by its ID
+//	@Tags			Subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Param			id	path		int	true	"Subscription ID"
+//	@Success		204	{object}	string	"No content"
+//	@Failure		400	{object}	string	"Invalid subscription ID"
+//	@Failure		404	{object}	string	"Subscription not found"
+//	@Failure		500	{object}	string	"Failed to delete subscription"
+//	@Router			/subscriptions/{id} [delete]
 func (h *SubscriptionHandler) DeleteSubscription(w http.ResponseWriter, r *http.Request) {
 	// Получить ID из параметров URL
 	vars := mux.Vars(r)
@@ -216,6 +264,19 @@ func (h *SubscriptionHandler) DeleteSubscription(w http.ResponseWriter, r *http.
 }
 
 // ListSubscriptions получает список подписок с опциональными фильтрами и пагинацией
+//
+//	@Summary		List subscriptions
+//	@Description	Get a list of subscriptions with optional filters and pagination
+//	@Tags			Subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Param			page			query		int		false	"Page number (default: 1)"
+//	@Param			limit			query		int		false	"Items per page (default: 10)"
+//	@Param			user_id			query		string	false	"Filter by user ID"
+//	@Param			service_name	query		string	false	"Filter by service name"
+//	@Success		200				{object}	object{data=[]models.Subscription,pagination=object{page=int,limit=int,total=int64,pages=int}}
+//	@Failure		500				{object}	string	"Failed to list subscriptions"
+//	@Router			/subscriptions [get]
 func (h *SubscriptionHandler) ListSubscriptions(w http.ResponseWriter, r *http.Request) {
 	// Получить параметры запроса
 	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
@@ -265,6 +326,20 @@ func (h *SubscriptionHandler) ListSubscriptions(w http.ResponseWriter, r *http.R
 }
 
 // CalculateTotalCost вычисляет общую стоимость подписок с опциональными фильтрами
+//
+//	@Summary		Calculate total cost
+//	@Description	Calculate the total cost of subscriptions with optional filters
+//	@Tags			Subscriptions
+//	@Accept			json
+//	@Produce		json
+//	@Param			user_id			query		string	false	"Filter by user ID"
+//	@Param			service_name	query		string	false	"Filter by service name"
+//	@Param			from			query		string	false	"Start date in MM-YYYY format"
+//	@Param			to				query		string	false	"End date in MM-YYYY format"
+//	@Success		200				{object}	object{total_cost=int}
+//	@Failure		400				{object}	string	"Failed to calculate total cost"
+//	@Failure		500				{object}	string	"Failed to calculate total cost"
+//	@Router			/subscriptions/cost [get]
 func (h *SubscriptionHandler) CalculateTotalCost(w http.ResponseWriter, r *http.Request) {
 	// Получить параметры запроса
 	userID := r.URL.Query().Get("user_id")
