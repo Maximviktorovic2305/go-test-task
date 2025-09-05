@@ -31,5 +31,5 @@ docker-compose up --build
 ```
 
 ## Документация API
-- Swagger UI: http://localhost:8081/swagger/index.html
-- Health check: http://localhost:8081/health
+- Swagger UI: http://localhost:8080/swagger/index.html
+- Health check: http://localhost:8080/health
