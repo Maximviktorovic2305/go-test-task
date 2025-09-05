@@ -18,7 +18,7 @@ func NewSubscriptionService(repo *repository.SubscriptionRepository) *Subscripti
 
 // CreateSubscription создает новую подписку
 func (s *SubscriptionService) CreateSubscription(subscription *models.Subscription) error {
-	// Убедиться, что StartDate установлена на первый день месяца
+	// Убедимся, что StartDate установлена на первый день месяца
 	subscription.StartDate = utils.GetFirstDayOfMonth(subscription.StartDate)
 
 	// Если EndDate предоставлена, установить ее на последний день месяца
@@ -77,8 +77,7 @@ func (s *SubscriptionService) ListSubscriptions(page, limit int, userID, service
 // CalculateTotalCost вычисляет общую стоимость подписок с опциональными фильтрами
 func (s *SubscriptionService) CalculateTotalCost(userID, serviceName, from, to string) (int, error) {
 	// Применить фильтры по диапазону дат
-	var startDate, endDate interface{}
-
+	var startDate, endDate any
 	if from != "" {
 		fromDate, err := utils.ParseMonthYear(from)
 		if err != nil {
