@@ -2,19 +2,18 @@ package services
 
 import (
 	"effective-mobile-subscription/internal/models"
+	"effective-mobile-subscription/internal/repository"
 	"effective-mobile-subscription/pkg/utils"
-
-	"gorm.io/gorm"
 )
 
 // SubscriptionService обрабатывает бизнес-логику для подписок
 type SubscriptionService struct {
-	db *gorm.DB
+	repo *repository.SubscriptionRepository
 }
 
 // NewSubscriptionService создает новый сервис подписок
-func NewSubscriptionService(db *gorm.DB) *SubscriptionService {
-	return &SubscriptionService{db: db}
+func NewSubscriptionService(repo *repository.SubscriptionRepository) *SubscriptionService {
+	return &SubscriptionService{repo: repo}
 }
 
 // CreateSubscription создает новую подписку
@@ -28,17 +27,12 @@ func (s *SubscriptionService) CreateSubscription(subscription *models.Subscripti
 		subscription.EndDate = &endDate
 	}
 
-	return s.db.Create(subscription).Error
+	return s.repo.Create(subscription)
 }
 
 // GetSubscription получает подписку по ID
 func (s *SubscriptionService) GetSubscription(id uint) (*models.Subscription, error) {
-	var subscription models.Subscription
-	err := s.db.First(&subscription, id).Error
-	if err != nil {
-		return nil, err
-	}
-	return &subscription, nil
+	return s.repo.GetByID(id)
 }
 
 // UpdateSubscription обновляет существующую подписку
@@ -52,39 +46,27 @@ func (s *SubscriptionService) UpdateSubscription(id uint, subscription *models.S
 		subscription.EndDate = &endDate
 	}
 
-	// Обновить только предоставленные поля
-	return s.db.Model(&models.Subscription{}).Where("id = ?", id).Updates(subscription).Error
+	return s.repo.Update(id, subscription)
 }
 
 // DeleteSubscription удаляет подписку по ID
 func (s *SubscriptionService) DeleteSubscription(id uint) error {
-	return s.db.Delete(&models.Subscription{}, id).Error
+	return s.repo.Delete(id)
 }
 
 // ListSubscriptions получает список подписок с опциональными фильтрами и пагинацией
 func (s *SubscriptionService) ListSubscriptions(page, limit int, userID, serviceName string) ([]models.Subscription, int64, error) {
-	var subscriptions []models.Subscription
-	var total int64
-
 	// Вычислить смещение для пагинации
 	offset := (page - 1) * limit
 
-	// Построить запрос с фильтрами
-	query := s.db.Model(&models.Subscription{})
-
-	// Применить фильтры
-	if userID != "" {
-		query = query.Where("user_id = ?", userID)
-	}
-	if serviceName != "" {
-		query = query.Where("service_name = ?", serviceName)
+	// Получить результаты с пагинацией
+	subscriptions, err := s.repo.List(offset, limit, userID, serviceName)
+	if err != nil {
+		return nil, 0, err
 	}
 
 	// Получить общее количество
-	query.Count(&total)
-
-	// Получить результаты с пагинацией
-	err := query.Offset(offset).Limit(limit).Order("created_at DESC").Find(&subscriptions).Error
+	total, err := s.repo.Count(userID, serviceName)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -94,20 +76,9 @@ func (s *SubscriptionService) ListSubscriptions(page, limit int, userID, service
 
 // CalculateTotalCost вычисляет общую стоимость подписок с опциональными фильтрами
 func (s *SubscriptionService) CalculateTotalCost(userID, serviceName, from, to string) (int, error) {
-	var totalCost int64
-
-	// Построить запрос
-	query := s.db.Model(&models.Subscription{}).Select("SUM(price)")
-
-	// Применить фильтры
-	if userID != "" {
-		query = query.Where("user_id = ?", userID)
-	}
-	if serviceName != "" {
-		query = query.Where("service_name = ?", serviceName)
-	}
-
 	// Применить фильтры по диапазону дат
+	var startDate, endDate interface{}
+
 	if from != "" {
 		fromDate, err := utils.ParseMonthYear(from)
 		if err != nil {
@@ -115,7 +86,7 @@ func (s *SubscriptionService) CalculateTotalCost(userID, serviceName, from, to s
 		}
 		// Установить на первый день месяца
 		fromDate = utils.GetFirstDayOfMonth(fromDate)
-		query = query.Where("start_date >= ?", fromDate)
+		startDate = fromDate
 	}
 
 	if to != "" {
@@ -125,25 +96,14 @@ func (s *SubscriptionService) CalculateTotalCost(userID, serviceName, from, to s
 		}
 		// Установить на последний день месяца
 		toDate = utils.GetLastDayOfMonth(toDate)
-		query = query.Where("start_date <= ?", toDate)
+		endDate = toDate
 	}
 
 	// Выполнить запрос
-	err := query.Scan(&totalCost).Error
+	totalCost, err := s.repo.CalculateTotalCost(userID, serviceName, startDate, endDate)
 	if err != nil {
 		return 0, err
 	}
 
 	return int(totalCost), nil
-}
-
-// applyFilters применяет области GORM для фильтрации подписок
-func (s *SubscriptionService) applyFilters(query *gorm.DB, userID, serviceName string) *gorm.DB {
-	if userID != "" {
-		query = query.Where("user_id = ?", userID)
-	}
-	if serviceName != "" {
-		query = query.Where("service_name = ?", serviceName)
-	}
-	return query
 }

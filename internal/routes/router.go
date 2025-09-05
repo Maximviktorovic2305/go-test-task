@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"effective-mobile-subscription/internal/handlers"
+	"effective-mobile-subscription/internal/repository"
 	"effective-mobile-subscription/internal/services"
 
 	"github.com/gorilla/mux"
@@ -15,8 +16,11 @@ func SetupRoutes(db *gorm.DB) *mux.Router {
 	// Создать маршрутизатор
 	router := mux.NewRouter()
 
+	// Создать репозитории
+	subscriptionRepo := repository.NewSubscriptionRepository(db)
+
 	// Создать сервисы
-	subscriptionService := services.NewSubscriptionService(db)
+	subscriptionService := services.NewSubscriptionService(subscriptionRepo)
 
 	// Создать обработчики
 	subscriptionHandler := handlers.NewSubscriptionHandler(subscriptionService)
