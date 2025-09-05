@@ -1,42 +1,27 @@
 package database
 
 import (
-	"context"
 	"fmt"
+	"log"
 
-	"github.com/jackc/pgx/v5/pgxpool"
+	"effective-mobile-subscription/config"
+
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
-// DB represents the database connection pool
-type DB struct {
-	Pool *pgxpool.Pool
-}
+// ConnectDB устанавливает соединение с базой данных PostgreSQL с использованием GORM
+func ConnectDB(cfg *config.Config) *gorm.DB {
+	// Создать строку подключения к PostgreSQL
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
+		cfg.DBHost, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBPort)
 
-// NewDB creates a new database connection pool
-func NewDB(databaseURL string) (*DB, error) {
-	config, err := pgxpool.ParseConfig(databaseURL)
+	// Подключиться к базе данных
+	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		return nil, fmt.Errorf("unable to parse database URL: %w", err)
+		log.Fatal("Не удалось подключиться к базе данных:", err)
 	}
 
-	// Configure the connection pool
-	config.MaxConns = 20
-	config.MinConns = 5
-
-	pool, err := pgxpool.NewWithConfig(context.Background(), config)
-	if err != nil {
-		return nil, fmt.Errorf("unable to create connection pool: %w", err)
-	}
-
-	// Test the connection
-	if err := pool.Ping(context.Background()); err != nil {
-		return nil, fmt.Errorf("unable to ping database: %w", err)
-	}
-
-	return &DB{Pool: pool}, nil
-}
-
-// Close closes the database connection pool
-func (db *DB) Close() {
-	db.Pool.Close()
+	log.Println("Успешное подключение к базе данных")
+	return db
 }

@@ -1,66 +1,57 @@
 package config
 
 import (
-	"fmt"
+	"log"
 	"os"
+	"strconv"
 
 	"github.com/joho/godotenv"
 )
 
-// Config holds the application configuration
+// Config содержит конфигурацию приложения
 type Config struct {
-	Port       string `env:"PORT" envDefault:"8080"`
-	DBHost     string `env:"DB_HOST" envDefault:"localhost"`
-	DBPort     string `env:"DB_PORT" envDefault:"5432"`
-	DBUser     string `env:"DB_USER"`
-	DBPassword string `env:"DB_PASSWORD"`
-	DBName     string `env:"DB_NAME"`
-	DBSSLMode  string `env:"DB_SSL_MODE" envDefault:"disable"`
-	LogLevel   string `env:"LOG_LEVEL" envDefault:"info"`
-	LogFormat  string `env:"LOG_FORMAT" envDefault:"json"`
+	DBHost     string
+	DBUser     string
+	DBPassword string
+	DBName     string
+	DBPort     int
+	ServerPort int
 }
 
-// LoadConfig loads configuration from environment variables
-func LoadConfig() (*Config, error) {
-	// Load .env file if it exists
-	godotenv.Load()
+// LoadConfig загружает конфигурацию из переменных окружения
+func LoadConfig() *Config {
+	// Загрузить файл .env, если он существует
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Println("Предупреждение: файл .env не найден, используются переменные окружения")
+	}
 
 	config := &Config{
-		Port:       getEnv("PORT", "8080"),
 		DBHost:     getEnv("DB_HOST", "localhost"),
-		DBPort:     getEnv("DB_PORT", "5432"),
-		DBUser:     getEnv("DB_USER", ""),
-		DBPassword: getEnv("DB_PASSWORD", ""),
-		DBName:     getEnv("DB_NAME", ""),
-		DBSSLMode:  getEnv("DB_SSL_MODE", "disable"),
-		LogLevel:   getEnv("LOG_LEVEL", "info"),
-		LogFormat:  getEnv("LOG_FORMAT", "json"),
+		DBUser:     getEnv("DB_USER", "postgres"),
+		DBPassword: getEnv("DB_PASSWORD", "admin"),
+		DBName:     getEnv("DB_NAME", "subscriptions"),
+		DBPort:     getEnvAsInt("DB_PORT", 5432),
+		ServerPort: getEnvAsInt("SERVER_PORT", 8080),
 	}
 
-	// Validate required fields
-	if config.DBUser == "" {
-		return nil, fmt.Errorf("DB_USER is required")
-	}
-	if config.DBPassword == "" {
-		return nil, fmt.Errorf("DB_PASSWORD is required")
-	}
-	if config.DBName == "" {
-		return nil, fmt.Errorf("DB_NAME is required")
-	}
-
-	return config, nil
+	return config
 }
 
-// DatabaseURL returns the PostgreSQL connection string
-func (c *Config) DatabaseURL() string {
-	return fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=%s",
-		c.DBUser, c.DBPassword, c.DBHost, c.DBPort, c.DBName, c.DBSSLMode)
-}
-
-// getEnv returns the value of an environment variable or a default value
+// getEnv получает переменную окружения или возвращает значение по умолчанию
 func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
+	if value, exists := os.LookupEnv(key); exists {
 		return value
+	}
+	return defaultValue
+}
+
+// getEnvAsInt получает переменную окружения как целое число или возвращает значение по умолчанию
+func getEnvAsInt(key string, defaultValue int) int {
+	if value, exists := os.LookupEnv(key); exists {
+		if intValue, err := strconv.Atoi(value); err == nil {
+			return intValue
+		}
 	}
 	return defaultValue
 }

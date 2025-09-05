@@ -2,25 +2,30 @@ package models
 
 import (
 	"time"
+
+	"gorm.io/gorm"
 )
 
-// Subscription represents a user's subscription to a service
 type Subscription struct {
-	ID          string    `json:"id" db:"id"`
-	ServiceName string    `json:"service_name" db:"service_name"`
-	Price       int       `json:"price" db:"price"`
-	UserID      string    `json:"user_id" db:"user_id"`
-	StartDate   time.Time `json:"start_date" db:"start_date"`
-	EndDate     time.Time `json:"end_date,omitempty" db:"end_date"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at" db:"updated_at"`
+	ID          uint       `gorm:"primaryKey" json:"id"`
+	ServiceName string     `gorm:"not null" json:"service_name"`
+	Price       int        `gorm:"not null" json:"price"`
+	UserID      string     `gorm:"type:uuid;not null" json:"user_id"`
+	StartDate   time.Time  `gorm:"not null" json:"start_date"`
+	EndDate     *time.Time `json:"end_date,omitempty"`
+	CreatedAt   time.Time  `json:"created_at"`
+	UpdatedAt   time.Time  `json:"updated_at"`
 }
 
-// SubscriptionRequest represents the request body for creating/updating a subscription
-type SubscriptionRequest struct {
-	ServiceName string `json:"service_name" binding:"required"`
-	Price       int    `json:"price" binding:"required,gt=0"`
-	UserID      string `json:"user_id" binding:"required,uuid"`
-	StartDate   string `json:"start_date" binding:"required"`
-	EndDate     string `json:"end_date,omitempty"`
+// BeforeCreate хук для установки CreatedAt и UpdatedAt
+func (s *Subscription) BeforeCreate(tx *gorm.DB) error {
+	s.CreatedAt = time.Now()
+	s.UpdatedAt = time.Now()
+	return nil
+}
+
+// BeforeUpdate хук для установки UpdatedAt
+func (s *Subscription) BeforeUpdate(tx *gorm.DB) error {
+	s.UpdatedAt = time.Now()
+	return nil
 }

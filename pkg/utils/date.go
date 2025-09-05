@@ -5,28 +5,30 @@ import (
 	"time"
 )
 
-// ParseMMYYYY parses a date string in MM-YYYY format to time.Time
-func ParseMMYYYY(dateStr string) (time.Time, error) {
-	// Parse the date string in MM-YYYY format
+// ParseMonthYear разбирает строку даты в формате ММ-ГГГГ
+func ParseMonthYear(dateStr string) (time.Time, error) {
+	// Разобрать строку даты в формате ММ-ГГГГ
 	t, err := time.Parse("01-2006", dateStr)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("invalid date format, expected MM-YYYY: %w", err)
+		return time.Time{}, fmt.Errorf("недопустимый формат даты, ожидается ММ-ГГГГ: %v", err)
 	}
 	return t, nil
 }
 
-// FormatMMYYYY formats a time.Time to MM-YYYY string
-func FormatMMYYYY(t time.Time) string {
+// FormatMonthYear форматирует time.Time в строку ММ-ГГГГ
+func FormatMonthYear(t time.Time) string {
 	return t.Format("01-2006")
 }
 
-// IsActiveDuringPeriod checks if a subscription was active during a given period
-func IsActiveDuringPeriod(start, end, periodStart, periodEnd time.Time) bool {
-	// If subscription has no end date, it's active until further notice
-	if end.IsZero() {
-		return !start.After(periodEnd)
-	}
-	
-	// Check if the periods overlap
-	return !start.After(periodEnd) && !end.Before(periodStart)
+// GetFirstDayOfMonth возвращает первый день месяца для заданной даты
+func GetFirstDayOfMonth(t time.Time) time.Time {
+	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, t.Location())
+}
+
+// GetLastDayOfMonth возвращает последний день месяца для заданной даты
+func GetLastDayOfMonth(t time.Time) time.Time {
+	// Получить первый день следующего месяца
+	nextMonth := time.Date(t.Year(), t.Month()+1, 1, 0, 0, 0, 0, t.Location())
+	// Вычесть один день, чтобы получить последний день текущего месяца
+	return nextMonth.AddDate(0, 0, -1)
 }
